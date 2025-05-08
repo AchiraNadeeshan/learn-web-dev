@@ -1,24 +1,82 @@
 body {
     margin: 0;
+    text-align: center;
+    font-family: "Merriweather", serif;
 }
 
 h1 {
+    line-height: 1.5;
+    color: #66bfbf;
+    margin: 50px auto 0 auto;
+    font-size: 5.625rem;
+    font-family: "Sacramento", cursive;
+}
+
+h2 {
+    color: #66bfbf;
+    font-family: "Montserrat", sans-serif;    
+    font-size: 2rem;
     margin-top: 0;
+    font-weight: normal;
+}
+
+h3 {
+    color: #11999e;
+    font-family: "Montserrat", sans-serif;
 }
 
 .top-container {
     background-color: #e4f9f5;
+    position: relative;
+    padding-top: 100px;
 }
 
 .middle-container {
-    background-color: red;
-    width: 200px;
-    height: 200px;
+    margin-top: 20px;
 }
 
 .bottom-container { 
-    background-color: blue;
-    width: 200px;
-    height: 200px;
+
 }
 
+.skill-row {
+    width: 50%;
+    margin: 100px auto;
+    text-align: left;
+    line-height: 2;
+}
+
+.pro {
+    text-decoration: underline;
+}
+
+.top-cloud {
+    width: 400px;
+    position: absolute;
+    right: 250px;
+    top: 40px;
+}
+
+.bottom-cloud {
+    width: 500px;
+    position: absolute;
+    transform: scaleX(-1);
+    left: 250px;
+    bottom:200px;
+}
+
+.mountain {
+    width: 620px;
+}
+
+.skill1 {
+    width: 25%;
+    margin-right: 30px;
+    float: left;
+}
+
+.skill2 {
+    width: 25%;
+    margin-left: 30px;
+    float: right;
+}
