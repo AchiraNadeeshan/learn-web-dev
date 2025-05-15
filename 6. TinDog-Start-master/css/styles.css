@@ -139,14 +139,43 @@ p {
     padding: 3% 2%;
 }
 
-@media (max-width:992px) {
-
-#title {
+/* CTA Section */
+#cta {
+    background-color: #ff4c68;
+    color: #ffffff;
+    padding: 7% 15%;
     text-align: center;
 }
 
-.title-image {
-    position: static;
-    transform: rotate(0)
+.cta-heading {
+    font-family: "Montserrat", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 900;
+    font-style: normal;
+    font-size: 3rem;
+    line-height: 1.5;
 }
+
+#footer {
+    padding: 7% 15%;
+    text-align: center;
+}
+
+.social-icons {
+    margin: 20px 10px;
+
+}
+
+
+
+@media (max-width:992px) {
+
+    #title {
+        text-align: center;
+    }
+
+    .title-image {
+        position: static;
+        transform: rotate(0)
+    }
 }
