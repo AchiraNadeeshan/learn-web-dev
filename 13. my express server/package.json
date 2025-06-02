@@ -1,0 +1,16 @@
+{
+  "name": "13.-my-express-server",
+  "version": "1.0.0",
+  "description": "my first express server",
+  "license": "ISC",
+  "author": "Achira Nadeeshan",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
