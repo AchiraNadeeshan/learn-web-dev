@@ -1,0 +1,16 @@
+{
+  "name": "12.-intro-to-node",
+  "version": "1.0.0",
+  "description": "This is a introduction project for node",
+  "license": "ISC",
+  "author": "Achira Nadeeshan",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "superheroes": "^4.0.0",
+    "supervillains": "^4.0.0"
+  }
+}
