@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const request = require("request");
+const https = require("https");
 
 const app = express();
 const port = 3000;
@@ -14,35 +15,41 @@ app.get("/", (req, res) => {
 });
 
 app.post("/", (req, res) => {
-  var firstName = req.body.fname;
-  var lastName = req.body.lname;
-  var email = req.body.email;
+  const firstName = req.body.fname;
+  const lastName = req.body.lname;
+  const email = req.body.email;
 
-  var data = {};
-
-  const listId = "YOUR_LIST_ID";
-  const subscribingUser = {
-    firstName: "Prudence",
-    lastName: "McVankab",
-    email: "prudence.mcvankab@example.com",
+  const data = {
+    members: [
+      {
+        email_address: email,
+        status: "subscribed",
+        merge_fields: {
+          FNAME: firstName,
+          LNAME: lastName,
+        },
+      },
+    ],
   };
 
-  async function run() {
-    const response = await mailchimp.lists.addListMember(listId, {
-      email_address: subscribingUser.email,
-      status: "subscribed",
-      merge_fields: {
-        FNAME: subscribingUser.firstName,
-        LNAME: subscribingUser.lastName,
-      },
+  const jsonData = JSON.stringify(data);
+  const url = "https://us4.api.mailchimp.com/3.0/lists/056258d44e";
+  const options = {
+    method: "POST",
+    auth: "anystring:aa02f52444be91e977be3215ccd6f673-us4",
+  };
+
+  const request = https.request(url, options, function (response) {
+    response.statusCode === 200
+      ? res.sendFile(__dirname + "/success.html")
+      : res.sendFile(__dirname + "/failure.html");
+    response.on("data", function (data) {
+      console.log(JSON.parse(data));
     });
+  });
 
-    console.log(
-      `Successfully added contact as an audience member. The contact's id is ${response.id}.`
-    );
-  }
-
-  run();
+  request.write(jsonData);
+  request.end();
 });
 
 app.listen(port, () => {
