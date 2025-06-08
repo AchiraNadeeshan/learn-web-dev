@@ -48,8 +48,12 @@ app.post("/", (req, res) => {
     });
   });
 
-  request.write(jsonData);
+  // request.write(jsonData);
   request.end();
+});
+
+app.post("/failure", (req, res) => {
+  res.redirect("/");
 });
 
 app.listen(port, () => {
