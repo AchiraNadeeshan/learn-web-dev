@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const app = express();
 const port = 3000;
 
-var items = [];
+var items = ["buy food", "cook food", "eat food"];
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -26,9 +26,7 @@ app.get("/", (req, res) => {
 
 app.post("/", (req, res) => {
   var item = req.body.newItem;
-
   items.push(item);
-
   res.redirect("/");
 });
 
