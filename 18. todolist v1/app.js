@@ -5,8 +5,8 @@ const date = require(__dirname + "/date.js");
 const app = express();
 const port = 3000;
 
-let items = ["buy food", "cook food", "eat food"];
-let workItems = [];
+const items = ["buy food", "cook food", "eat food"];
+const workItems = [];
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -14,12 +14,12 @@ app.use(express.static("public"));
 app.set("view engine", "ejs");
 
 app.get("/", (req, res) => {
-  let day = date.getDate();
+  const day = date.getDate();
   res.render("list", { listTitle: day, items: items });
 });
 
 app.post("/", (req, res) => {
-  let item = req.body.newItem;
+  const item = req.body.newItem;
 
   if (req.body.list === "Work List") {
     workItems.push(item);
