@@ -1,8 +1,30 @@
-const { MongoClient } = require("mongodb");
+const mongoose = require('mongoose');
 
-const uri = "mongodb://localhost:27017";
+mongoose.connect('mongodb://localhost:27017/fruitsDB', { useNewUrlParser: true, useUnifiedTopology: true });
 
-const client = new MongoClient(uri);  
+const fruitSchema = new mongoose.Schema({
+  name: String,
+  rating: Number,
+  review: String
+});
+
+const Fruit = mongoose.model('Fruit', fruitSchema);
+
+const fruit = new Fruit({
+  name: "Apple",
+  rating: 8,
+  review: "Sweet and crunchy"
+});
+
+fruit.save()
+
+
+
+
+
+
+
+
 
 async function run() {
   try {
