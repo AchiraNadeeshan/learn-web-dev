@@ -10,36 +10,33 @@ const fruitSchema = new mongoose.Schema({
 
 const Fruit = mongoose.model('Fruit', fruitSchema);
 
-const fruit = new Fruit({
-  name: "Apple",
-  rating: 8,
-  review: "Sweet and crunchy"
+const kiwi = new Fruit({
+  name: "Kiwi",
+  rating: 7,
+  review: "Tasty and healthy"
 });
 
-fruit.save()
+const orange = new Fruit({
+  name: "Orange",
+  rating: 6,
+  review: "Citrusy and refreshing"
+});
 
+const banana = new Fruit({
+  name: "Banana",
+  rating: 9,
+  review: "Soft and sweet"
+});
 
-
-
-
-
-
-
-
-async function run() {
+async function insertFruits() {
   try {
-    const database = client.db("fruitsDB");
-    const fruits = database.collection("fruits");
-
-    await fruits.insertOne({ name: "Apple", rating: 8, review: "Sweet and crunchy" });
-
-    const query = { name: "Apple" };
-    const fruit = await fruits.findOne(query);
-
-    console.log(fruit);
+    await Fruit.insertMany([kiwi, orange, banana]);
+    console.log("Successfully saved all fruits to fruitsDB");
   } catch (err) {
     console.error(err);
   } finally {
-    await client.close();
+    mongoose.connection.close(); // Optional: close DB connection
   }
 }
+
+insertFruits();
