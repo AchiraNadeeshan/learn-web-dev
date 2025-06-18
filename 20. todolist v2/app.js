@@ -12,10 +12,10 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
 // Connect to MongoDB
-// useNewUrlParser and useUnifiedTopology are recommended for new connections
+// Use .then() and .catch() for Promise-based connection handling
 mongoose.connect("mongodb://localhost:27017/todolistDB", { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.error(err));
+  .then(() => console.log("MongoDB Connected Successfully!"))
+  .catch(err => console.error("MongoDB Connection Error:", err));
 
 const itemSchema = {
   name: String
@@ -34,64 +34,76 @@ const item3 = new Item({
 });
 const defaultItems = [item1, item2, item3];
 
-// Use async/await with insertMany as it returns a Promise
+// --- IMPORTANT: This is where the 'await' error often occurs if not handled correctly ---
+// Use an immediately invoked async function (IIAFE) to handle initial database operations
+// that use 'await' at the application startup.
 (async () => {
   try {
-    // Check if there are existing items before inserting defaults
-    const existingItems = await Item.find({});
-    if (existingItems.length === 0) {
-      await Item.insertMany(defaultItems);
+    // Check if the collection is empty before inserting default items
+    const existingItemsCount = await Item.countDocuments({}); // 'await' is valid here
+    if (existingItemsCount === 0) {
+      await Item.insertMany(defaultItems); // 'await' is valid here
       console.log("Default items added successfully.");
     } else {
       console.log("Default items already exist, skipping insertion.");
     }
   } catch (err) {
-    console.error("Error inserting default items:", err);
+    console.error("Error during default item insertion:", err);
   }
 })();
+// --- END of IIAFE for initial setup ---
 
-app.get("/", async function(req, res) {
+
+// All route handlers using 'await' MUST be marked 'async'
+app.get("/", async function(req, res) { // <-- Marked as async
   try {
-    const foundItems = await Item.find({});
-    res.render("list", {listTitle: "Today", newListItems: foundItems});
+    const foundItems = await Item.find({}); // 'await' is valid here because the function is async
+
+    if (foundItems.length === 0) {
+      // If no items found, insert default items
+      await Item.insertMany(defaultItems); // 'await' is valid here
+      console.log("Default items added successfully (on first visit).");
+      // After inserting, retrieve them again or use the defaultItems directly
+      res.render("list", {listTitle: "Today", newListItems: defaultItems});
+    } else {
+      res.render("list", {listTitle: "Today", newListItems: foundItems});
+    }
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Error retrieving items.");
+    console.error("Error retrieving or inserting items for today's list:", err);
+    res.status(500).send("An error occurred while loading your todo list.");
   }
 });
 
-app.post("/", async function(req, res){
+app.post("/", async function(req, res){ // <-- Marked as async
   const itemName = req.body.newItem;
-  const listName = req.body.list; // This will likely be the listTitle from the form
+  const listType = req.body.list;
 
   const newItem = new Item({
     name: itemName
   });
 
   try {
-    await newItem.save();
-    if (listName === "Work List") {
-      // You'll need to implement logic for different lists, e.g., a separate model
-      // or a field in the Item schema to differentiate lists.
-      // For now, redirecting to home as your current setup doesn't distinguish lists in the DB.
+    await newItem.save(); // 'await' is valid here
+
+    // Reminder: Your current database schema doesn't differentiate between "Today" and "Work List"
+    // items. For proper persistence for different lists, you would typically add
+    // a 'listType' field to your itemSchema and filter based on that.
+    if (listType === "Work List") {
       res.redirect("/work");
     } else {
       res.redirect("/");
     }
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Error saving item.");
+    console.error("Error saving new item:", err);
+    res.status(500).send("Error adding new item to the list.");
   }
 });
 
-// Note: Your current setup for /work and the `workItems` array
-// is not persistent with Mongoose. You'll need to modify your schema
-// or create a separate model for work items if you want them stored in the database.
-// For now, it will simply render the "Work List" title without actual items from DB.
-app.get("/work", function(req,res){
-  // If you want to fetch items for work list from DB, you'd do it here
-  // similar to the "/" route, possibly with a filter if your schema supports it.
-  res.render("list", {listTitle: "Work List", newListItems: []}); // No items from DB currently
+app.get("/work", async function(req,res){ // <-- Marked as async, good practice for potential future DB calls
+  // If you had a 'listType' field in your schema, you would query like:
+  // const workItems = await Item.find({ listType: "Work" });
+  // For now, it will render an empty list as there's no distinction in DB.
+  res.render("list", {listTitle: "Work List", newListItems: []}); // Or fetch specific work items if your schema supports it
 });
 
 app.get("/about", function(req, res){
