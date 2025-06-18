@@ -15,10 +15,9 @@ app.use(express.static("public"));
 // Connect to MongoDB
 // Use .then() and .catch() for Promise-based connection handling
 mongoose
-  .connect("mongodb://localhost:27017/todolistDB", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(
+    "mongodb+srv://admin-achira:Test123@cluster0.qotralt.mongodb.net/todolistDB?retryWrites=true&w=majority&appName=Cluster0" // <-- Updated URI (suggestion)
+  )
   .then(() => console.log("MongoDB Connected Successfully!"))
   .catch((err) => console.error("MongoDB Connection Error:", err));
 
@@ -66,14 +65,12 @@ const List = mongoose.model("List", listSchema);
 
 // All route handlers using 'await' MUST be marked 'async'
 app.get("/", async function (req, res) {
-  // <-- Marked as async
   try {
-    const foundItems = await Item.find({}); // 'await' is valid here because the function is async
+    const foundItems = await Item.find({});
 
     if (foundItems.length === 0) {
-      // If no items found, insert default items
-      await Item.insertMany(defaultItems); // 'await' is valid here
-      console.log("Default items added successfully (on first visit)."); // After inserting, retrieve them again or use the defaultItems directly
+      await Item.insertMany(defaultItems);
+      console.log("Default items added successfully (on first visit).");
       res.render("list", { listTitle: "Today", newListItems: defaultItems });
     } else {
       res.render("list", { listTitle: "Today", newListItems: foundItems });
@@ -104,8 +101,6 @@ app.post("/", async function (req, res) {
       } else {
         // If the custom list doesn't exist (e.g., user typed a URL that doesn't exist yet,
         // or a form submission for a non-existent list), handle accordingly.
-        // For now, let's redirect to home. You might want to create the list here
-        // or show an error.
         console.log(`List '${listName}' not found when trying to add item.`);
         res.redirect("/");
       }
@@ -121,7 +116,6 @@ app.post("/", async function (req, res) {
 });
 
 app.post("/delete", async function (req, res) {
-  // <-- Marked as async
   const checkedItemId = req.body.checkbox; // ID of the item to delete
   const listName = req.body.listName; // Assuming you'll pass listName from a hidden input in the form
 
@@ -145,28 +139,24 @@ app.post("/delete", async function (req, res) {
   }
 });
 
-// CORRECTED app.get("/:customListName") route
 app.get("/:customListName", async function (req, res) {
   const customListName = _.capitalize(req.params.customListName);
 
   try {
-    // Use await with List.findOne()
     const foundList = await List.findOne({ name: customListName });
 
     if (!foundList) {
-      // If list not found, create a new one
       console.log("List not found, creating a new one.");
       const list = new List({
         name: customListName,
         items: defaultItems, // Initialize with default items
       });
-      await list.save(); // Await the save operation
+      await list.save();
       res.render("list", {
         listTitle: customListName,
         newListItems: list.items,
       });
     } else {
-      // List found, render it
       console.log("List found.");
       res.render("list", {
         listTitle: foundList.name,
@@ -183,6 +173,11 @@ app.get("/about", function (req, res) {
   res.render("about");
 });
 
-app.listen(3000, function () {
-  console.log("Server started on port 3000");
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 3001; // Default to port 3000 if not set
+}
+// Listen on the determined port
+app.listen(port, function () {
+  console.log(`Server started successfully on port ${port}`); // Updated console log
 });
