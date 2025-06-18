@@ -38,6 +38,12 @@ const item3 = new Item({
 });
 const defaultItems = [item1, item2, item3];
 
+const listSchema = {
+  name: String,
+  items: [itemSchema], // Array of Item documents
+};
+const List = mongoose.model("List", listSchema);
+
 // --- IMPORTANT: This is where the 'await' error often occurs if not handled correctly ---
 // Use an immediately invoked async function (IIAFE) to handle initial database operations
 // that use 'await' at the application startup.
@@ -80,18 +86,29 @@ app.get("/", async function (req, res) {
 app.post("/", async function (req, res) {
   // <-- Marked as async
   const itemName = req.body.newItem;
-  const listType = req.body.list;
+  const listName = req.body.list; // Renamed from listType for clarity if it's coming from a form's name attribute
 
   const newItem = new Item({
     name: itemName,
   });
 
   try {
-    await newItem.save(); // 'await' is valid here // Reminder: Your current database schema doesn't differentiate between "Today" and "Work List" // items. For proper persistence for different lists, you would typically add // a 'listType' field to your itemSchema and filter based on that.
-
-    if (listType === "Work List") {
-      res.redirect("/work");
+    // Check if the item is for a custom list or the default "Today" list
+    if (listName && listName !== "Today") { // Assuming "Today" is the default list title from the form
+      const foundList = await List.findOne({ name: listName });
+      if (foundList) {
+        foundList.items.push(newItem);
+        await foundList.save();
+        res.redirect("/" + listName);
+      } else {
+        // If list not found, perhaps create it or handle error
+        console.log(`List '${listName}' not found when trying to add item.`);
+        // For now, redirect to home if custom list not found
+        res.redirect("/");
+      }
     } else {
+      // It's for the default "Today" list
+      await newItem.save();
       res.redirect("/");
     }
   } catch (err) {
@@ -103,23 +120,55 @@ app.post("/", async function (req, res) {
 app.post("/delete", async function (req, res) {
   // <-- Marked as async
   const checkedItemId = req.body.checkbox; // ID of the item to delete
+  const listName = req.body.listName; // Assuming you'll pass listName from a hidden input in the form
 
   try {
-    await Item.findByIdAndDelete(checkedItemId); // <-- CORRECTED LINE: Changed to findByIdAndDelete
-    console.log("Item deleted successfully.");
-    res.redirect("/"); // Redirect to the main list after deletion
+    if (listName === "Today") {
+      await Item.findByIdAndDelete(checkedItemId);
+      console.log("Default list item deleted successfully.");
+      res.redirect("/");
+    } else {
+      // If it's a custom list, find the list and pull the item from its items array
+      await List.findOneAndUpdate(
+        { name: listName },
+        { $pull: { items: { _id: checkedItemId } } }
+      );
+      console.log("Custom list item deleted successfully.");
+      res.redirect("/" + listName);
+    }
   } catch (err) {
     console.error("Error deleting item:", err);
     res.status(500).send("Error deleting item from the list.");
   }
 });
 
-app.get("/work", async function (req, res) {
-  // <-- Marked as async, good practice for potential future DB calls
-  // If you had a 'listType' field in your schema, you would query like:
-  // const workItems = await Item.find({ listType: "Work" });
-  // For now, it will render an empty list as there's no distinction in DB.
-  res.render("list", { listTitle: "Work List", newListItems: [] }); // Or fetch specific work items if your schema supports it
+
+// CORRECTED app.get("/:customListName") route
+app.get("/:customListName", async function (req, res) {
+  const customListName = req.params.customListName;
+
+  try {
+    // Use await with List.findOne()
+    const foundList = await List.findOne({ name: customListName });
+
+    if (!foundList) {
+      // If list not found, create a new one
+      console.log("List not found, creating a new one.");
+      const list = new List({
+        name: customListName,
+        items: defaultItems, // Initialize with default items
+      });
+      await list.save(); // Await the save operation
+      res.render("list", { listTitle: customListName, newListItems: list.items });
+    } else {
+      // List found, render it
+      console.log("List found.");
+      res.render("list", { listTitle: foundList.name, newListItems: foundList.items });
+    }
+  } catch (err) {
+    console.error("Error accessing or creating custom list:", err);
+    res.status(500).send("An error occurred while loading your custom list.");
+  }
 });
 
 app.get("/about", function (req, res) {
