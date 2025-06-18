@@ -84,9 +84,8 @@ app.get("/", async function (req, res) {
 });
 
 app.post("/", async function (req, res) {
-  // <-- Marked as async
   const itemName = req.body.newItem;
-  const listName = req.body.list; // Renamed from listType for clarity if it's coming from a form's name attribute
+  const listName = req.body.list; // This name comes from the button's 'name="list"' attribute
 
   const newItem = new Item({
     name: itemName,
@@ -94,21 +93,24 @@ app.post("/", async function (req, res) {
 
   try {
     // Check if the item is for a custom list or the default "Today" list
-    if (listName && listName !== "Today") { // Assuming "Today" is the default list title from the form
+    if (listName && listName !== "Today") {
+      // Find the custom list
       const foundList = await List.findOne({ name: listName });
       if (foundList) {
-        foundList.items.push(newItem);
-        await foundList.save();
-        res.redirect("/" + listName);
+        foundList.items.push(newItem); // Add the new item to the list's items array
+        await foundList.save(); // Save the updated list
+        res.redirect("/" + listName); // Redirect to the custom list
       } else {
-        // If list not found, perhaps create it or handle error
+        // If the custom list doesn't exist (e.g., user typed a URL that doesn't exist yet,
+        // or a form submission for a non-existent list), handle accordingly.
+        // For now, let's redirect to home. You might want to create the list here
+        // or show an error.
         console.log(`List '${listName}' not found when trying to add item.`);
-        // For now, redirect to home if custom list not found
         res.redirect("/");
       }
     } else {
-      // It's for the default "Today" list
-      await newItem.save();
+      // It's for the default "Today" list (or if listName is undefined/empty)
+      await newItem.save(); // Save to the default Item collection
       res.redirect("/");
     }
   } catch (err) {
@@ -142,7 +144,6 @@ app.post("/delete", async function (req, res) {
   }
 });
 
-
 // CORRECTED app.get("/:customListName") route
 app.get("/:customListName", async function (req, res) {
   const customListName = req.params.customListName;
@@ -159,11 +160,17 @@ app.get("/:customListName", async function (req, res) {
         items: defaultItems, // Initialize with default items
       });
       await list.save(); // Await the save operation
-      res.render("list", { listTitle: customListName, newListItems: list.items });
+      res.render("list", {
+        listTitle: customListName,
+        newListItems: list.items,
+      });
     } else {
       // List found, render it
       console.log("List found.");
-      res.render("list", { listTitle: foundList.name, newListItems: foundList.items });
+      res.render("list", {
+        listTitle: foundList.name,
+        newListItems: foundList.items,
+      });
     }
   } catch (err) {
     console.error("Error accessing or creating custom list:", err);
