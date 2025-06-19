@@ -23,41 +23,41 @@ const articleSchema = {
 };
 const Article = mongoose.model("Article", articleSchema);
 
-app.get("/articles", async function (req, res) {
-  try {
-    const foundArticles = await Article.find();
-    res.send(foundArticles);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("An error occurred while fetching articles.");
-  }
-});
+app
+  .route("/articles")
+  .get(async function (req, res) {
+    try {
+      const foundArticles = await Article.find();
+      res.send(foundArticles);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("An error occurred while fetching articles.");
+    }
+  })
+  .post(async function (req, res) {
+    try {
+      const newArticle = new Article({
+        title: req.body.title,
+        content: req.body.content,
+      });
 
-app.post("/articles", async function (req, res) {
-  try {
-    const newArticle = new Article({
-      title: req.body.title,
-      content: req.body.content,
-    });
+      await newArticle.save(); // Await the save operation
 
-    await newArticle.save(); // Await the save operation
-
-    res.status(201).send("Successfully added the new article.");
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Failed to add the article.");
-  }
-});
-
-app.delete("/articles", async function (req, res) {
-  try {
-    await Article.deleteMany({});
-    res.status(200).send("Successfully deleted all articles.");
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Failed to delete articles.");
-  }
-});
+      res.status(201).send("Successfully added the new article.");
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Failed to add the article.");
+    }
+  })
+  .delete(async function (req, res) {
+    try {
+      await Article.deleteMany({});
+      res.status(200).send("Successfully deleted all articles.");
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Failed to delete articles.");
+    }
+  });
 
 app.listen(3000, function () {
   console.log("Server started on port 3000");
