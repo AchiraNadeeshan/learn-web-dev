@@ -175,7 +175,7 @@ app.get("/about", function (req, res) {
 
 let port = process.env.PORT;
 if (port == null || port == "") {
-  port = 3001; // Default to port 3000 if not set
+  port = 3000; // Default to port 3000 if not set
 }
 // Listen on the determined port
 app.listen(port, function () {
