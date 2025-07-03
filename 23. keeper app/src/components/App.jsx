@@ -1,12 +1,13 @@
 import React from "react";
 import Header from "./Header";
 import Footer from "./Footer";
+import Note from "./Note";
 
 function App() {
   return (
     <div>
       <Header />
-      <h1>Hello App</h1>
+      <Note />
       <Footer />
     </div>
   );
